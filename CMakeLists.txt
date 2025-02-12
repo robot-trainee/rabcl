@@ -15,6 +15,7 @@ find_package(ament_cmake REQUIRED)
 
 add_library(rabcl SHARED
   src/component/jga25_370.cpp
+  src/controller/omni_drive.cpp
   src/interface/uart.cpp
   src/utils/utils.cpp
 )
