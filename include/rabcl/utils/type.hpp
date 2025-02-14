@@ -35,7 +35,7 @@ enum MODE_ID
     CHASSIS
 };
 
-class Type
+class Info
 {
 public:
     float chassis_vel_x_;

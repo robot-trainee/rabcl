@@ -21,10 +21,13 @@ private:
 public:
     Uart();
     ~Uart();
-    bool UpdateData(uint8_t receive_buf[], Type& data);
+    bool UpdateData(Info& data);
+    void PrepareFloatData(const uint8_t idx, const float data);
+    void Prepare4IntData(const uint8_t idx, const uint8_t data[4]);
 
 public:
     uint8_t uart_receive_buffer_[8];
+    uint8_t uart_transmit_buffer_[8];
 };
 } // namespace rabcl
 

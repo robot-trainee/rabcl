@@ -9,11 +9,11 @@ namespace rabcl
 class Utils
 {
 public:
-    void DegToRad(double deg, double& rad);
-    double DegToRad(double deg);
+    static void DegToRad(double deg, double& rad);
+    static double DegToRad(double deg);
 
-    void RadToDeg(double rad, double& deg);
-    double RadToDeg(double rad);
+    static void RadToDeg(double rad, double& deg);
+    static double RadToDeg(double rad);
 
 };
 } // namespace rabcl
