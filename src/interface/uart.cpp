@@ -67,7 +67,7 @@ bool Uart::UpdateData(Info& data)
     }
 }
 
-void Uart::PrepareFloatData(const uint8_t idx, const float data)
+void Uart::PrepareFloatData(uint8_t idx, float data)
 {
     // ---header
     uart_transmit_buffer_[0] = 0xFF;
@@ -88,7 +88,7 @@ void Uart::PrepareFloatData(const uint8_t idx, const float data)
     uart_transmit_buffer_[7] = 0x00;
 }
 
-void Uart::Prepare4IntData(const uint8_t idx, const uint8_t data[4])
+void Uart::Prepare4IntData(uint8_t idx, const uint8_t data[4])
 {
     // ---header
     uart_transmit_buffer_[0] = 0xFF;

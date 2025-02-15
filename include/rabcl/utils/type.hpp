@@ -17,7 +17,7 @@ enum UART_ID
 
 enum CAN_ID
 {
-    CAN_CHASSIS_X_Y = 71,
+    CAN_CHASSIS_X_Y = 0x711,
     CAN_CHASSIS_Z_YAW,
     CAN_PITCH_MODES,
     CAN_FRONT_RIGHT,
