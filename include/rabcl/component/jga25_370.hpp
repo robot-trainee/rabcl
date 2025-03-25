@@ -27,12 +27,15 @@ public:
 
     double GetCmdVel();
     double GetActVel();
+    double GetActPos();
 
 private:
     uint16_t motor_output_max_;
-    double count_to_vel_factor_; // rad
+    double count_to_pos_factor_; // rad
+    double count_to_vel_factor_; // rad/s
 
     std::vector<int16_t> encoder_count_buf_;
+    int32_t encoder_count_sum_;
     double pre_diff_; // rad
     double cmd_vel_; // rad
     double act_vel_; // rad
