@@ -12,8 +12,8 @@ private:
     static constexpr double ENCODER_SAMPLING_FREQUENCY = 0.2;
     static constexpr int NUM_ENCODER_DATA_BUF = 20; // motor:10ms, sampling_frequency:200ms
     static constexpr int NUM_ENCODER_RESOLUTION = 44;
-    static constexpr double MOTOR_CONTROL_P = 3.0;
-    static constexpr double MOTOR_CONTROL_D = 0.4;
+    static constexpr double MOTOR_CONTROL_P = 1.6;
+    static constexpr double MOTOR_CONTROL_D = 0.2;
 
 public:
     JGA25_370(
