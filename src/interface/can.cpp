@@ -66,6 +66,91 @@ bool Can::UpdateData(uint32_t idx, const uint8_t can_data[8], Info& data)
         data.speed_mode_ = can_data[4 + (int)MODE_ID::SPEED];
         data.chassis_mode_ = can_data[4 + (int)MODE_ID::CHASSIS];
     }
+    else if (idx == (uint32_t)CAN_ID::CAN_YAW_CMD_ACT)
+    {
+        buf.ui = (int32_t) (
+            (((int32_t)can_data[0] << 24) & 0xFF000000)
+          | (((int32_t)can_data[1] << 16) & 0x00FF0000)
+          | (((int32_t)can_data[2] <<  8) & 0x0000FF00)
+          | (((int32_t)can_data[3] <<  0) & 0x000000FF)
+        );
+        data.yaw_pos_cmd_ = buf.f;
+        buf.ui = (int32_t) (
+              (((int32_t)can_data[4] << 24) & 0xFF000000)
+            | (((int32_t)can_data[5] << 16) & 0x00FF0000)
+            | (((int32_t)can_data[6] <<  8) & 0x0000FF00)
+            | (((int32_t)can_data[7] <<  0) & 0x000000FF)
+        );
+        data.yaw_pos_act_ = buf.f;
+    }
+    else if (idx == (uint32_t)CAN_ID::CAN_CHASSIS_FRONT_CMD)
+    {
+        buf.ui = (int32_t) (
+            (((int32_t)can_data[0] << 24) & 0xFF000000)
+          | (((int32_t)can_data[1] << 16) & 0x00FF0000)
+          | (((int32_t)can_data[2] <<  8) & 0x0000FF00)
+          | (((int32_t)can_data[3] <<  0) & 0x000000FF)
+        );
+        data.front_right_vel_cmd_ = buf.f;
+        buf.ui = (int32_t) (
+              (((int32_t)can_data[4] << 24) & 0xFF000000)
+            | (((int32_t)can_data[5] << 16) & 0x00FF0000)
+            | (((int32_t)can_data[6] <<  8) & 0x0000FF00)
+            | (((int32_t)can_data[7] <<  0) & 0x000000FF)
+        );
+        data.front_left_vel_cmd_ = buf.f;
+    }
+    else if (idx == (uint32_t)CAN_ID::CAN_CHASSIS_BACK_CMD)
+    {
+        buf.ui = (int32_t) (
+            (((int32_t)can_data[0] << 24) & 0xFF000000)
+          | (((int32_t)can_data[1] << 16) & 0x00FF0000)
+          | (((int32_t)can_data[2] <<  8) & 0x0000FF00)
+          | (((int32_t)can_data[3] <<  0) & 0x000000FF)
+        );
+        data.back_right_vel_cmd_ = buf.f;
+        buf.ui = (int32_t) (
+              (((int32_t)can_data[4] << 24) & 0xFF000000)
+            | (((int32_t)can_data[5] << 16) & 0x00FF0000)
+            | (((int32_t)can_data[6] <<  8) & 0x0000FF00)
+            | (((int32_t)can_data[7] <<  0) & 0x000000FF)
+        );
+        data.back_left_vel_cmd_ = buf.f;
+    }
+    else if (idx == (uint32_t)CAN_ID::CAN_CHASSIS_FRONT_ACT)
+    {
+        buf.ui = (int32_t) (
+            (((int32_t)can_data[0] << 24) & 0xFF000000)
+          | (((int32_t)can_data[1] << 16) & 0x00FF0000)
+          | (((int32_t)can_data[2] <<  8) & 0x0000FF00)
+          | (((int32_t)can_data[3] <<  0) & 0x000000FF)
+        );
+        data.front_right_vel_act_ = buf.f;
+        buf.ui = (int32_t) (
+              (((int32_t)can_data[4] << 24) & 0xFF000000)
+            | (((int32_t)can_data[5] << 16) & 0x00FF0000)
+            | (((int32_t)can_data[6] <<  8) & 0x0000FF00)
+            | (((int32_t)can_data[7] <<  0) & 0x000000FF)
+        );
+        data.front_left_vel_act_ = buf.f;
+    }
+    else if (idx == (uint32_t)CAN_ID::CAN_CHASSIS_BACK_ACT)
+    {
+        buf.ui = (int32_t) (
+            (((int32_t)can_data[0] << 24) & 0xFF000000)
+          | (((int32_t)can_data[1] << 16) & 0x00FF0000)
+          | (((int32_t)can_data[2] <<  8) & 0x0000FF00)
+          | (((int32_t)can_data[3] <<  0) & 0x000000FF)
+        );
+        data.back_right_vel_act_ = buf.f;
+        buf.ui = (int32_t) (
+              (((int32_t)can_data[4] << 24) & 0xFF000000)
+            | (((int32_t)can_data[5] << 16) & 0x00FF0000)
+            | (((int32_t)can_data[6] <<  8) & 0x0000FF00)
+            | (((int32_t)can_data[7] <<  0) & 0x000000FF)
+        );
+        data.back_left_vel_act_ = buf.f;
+    }
     else
     {
         return false;

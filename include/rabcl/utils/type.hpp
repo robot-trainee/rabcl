@@ -20,11 +20,11 @@ enum CAN_ID
     CAN_CHASSIS_X_Y = 0x711,
     CAN_CHASSIS_Z_YAW,
     CAN_PITCH_MODES,
-    CAN_FRONT_RIGHT,
-    CAN_FRONT_LEFT,
-    CAN_BACK_RIGHT,
-    CAN_BACK_LEFT,
-    CAN_YAW
+    CAN_YAW_CMD_ACT,
+    CAN_CHASSIS_FRONT_CMD,
+    CAN_CHASSIS_BACK_CMD,
+    CAN_CHASSIS_FRONT_ACT,
+    CAN_CHASSIS_BACK_ACT,
 };
 
 enum MODE_ID
@@ -38,6 +38,7 @@ enum MODE_ID
 class Info
 {
 public:
+    // reference
     float chassis_vel_x_;
     float chassis_vel_y_;
     float chassis_vel_z_;
@@ -47,6 +48,20 @@ public:
     uint8_t fire_mode_; // 0:Stop, 1:Low, 2:High
     uint8_t speed_mode_; // 0:Low, 1:High
     uint8_t chassis_mode_; // 0:Nomal, 1:InfiniteRot
+
+    // command
+    float yaw_pos_cmd_;
+    float front_right_vel_cmd_;
+    float front_left_vel_cmd_;
+    float back_right_vel_cmd_;
+    float back_left_vel_cmd_;
+
+    // actual
+    float yaw_pos_act_;
+    float front_right_vel_act_;
+    float front_left_vel_act_;
+    float back_right_vel_act_;
+    float back_left_vel_act_;
 };
 } // namespace rabcl
 
