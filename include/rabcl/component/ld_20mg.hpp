@@ -16,7 +16,9 @@ private:
     static constexpr double MAX_POS = M_PI; // rad
 
 public:
-    LD_20MG(double min_pos, double max_pos, double reduction_ratio);
+    LD_20MG(
+        double min_pos, double max_pos,
+        double offset_pos, double reduction_ratio);
     ~LD_20MG();
 
     void Updata(double cmd_vel);
@@ -27,6 +29,7 @@ public:
 private:
     double min_pos_; // rad
     double max_pos_; // rad
+    double offset_pos_; // rad
     double reduction_ratio_;
 
     double cmd_pos_; // rad
