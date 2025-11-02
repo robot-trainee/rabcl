@@ -42,11 +42,11 @@ bool Uart::UpdateData(Info& data)
         }
         else if (idx == UART_ID::UART_YAW)
         {
-            data.yaw_vel_ = buf.f;
+            data.yaw_pos_ = buf.f;
         }
         else if (idx == UART_ID::UART_PITCH)
         {
-            data.pitch_vel_ = buf.f;
+            data.pitch_pos_ = buf.f;
         }
         else if (idx == UART_ID::UART_MODES)
         {

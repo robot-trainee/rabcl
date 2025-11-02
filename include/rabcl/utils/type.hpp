@@ -41,24 +41,12 @@ public:
     float chassis_vel_x_;
     float chassis_vel_y_;
     float chassis_vel_z_;
-    float yaw_vel_;
-    float pitch_vel_;
+    float yaw_pos_;
+    float pitch_pos_;
     uint8_t load_mode_; // 0:Stop, 1:Forward, 2:Reverse
     uint8_t fire_mode_; // 0:Stop, 1:Low, 2:High
     uint8_t speed_mode_; // 0:Low, 1:High
     uint8_t chassis_mode_; // 0:Nomal, 1:InfiniteRot
-
-    // ちびMDのCAN通信用
-    // float front_right_cmd_;
-    // float front_right_act_;
-    // float front_left_cmd_;
-    // float front_left_act_;
-    // float back_right_cmd_;
-    // float back_right_act_;
-    // float back_left_cmd_;
-    // float back_left_act_;
-    // float yaw_cmd_;
-    // float yaw_act_;
 };
 } // namespace rabcl
 

@@ -50,7 +50,7 @@ bool Can::UpdateData(uint32_t idx, const uint8_t can_data[8], Info& data)
             | (((int32_t)can_data[6] <<  8) & 0x0000FF00)
             | (((int32_t)can_data[7] <<  0) & 0x000000FF)
         );
-        data.yaw_vel_ = buf.f;
+        data.yaw_pos_ = buf.f;
     }
     else if (idx == (uint32_t)CAN_ID::CAN_PITCH_MODES)
     {
@@ -60,7 +60,7 @@ bool Can::UpdateData(uint32_t idx, const uint8_t can_data[8], Info& data)
           | (((int32_t)can_data[2] <<  8) & 0x0000FF00)
           | (((int32_t)can_data[3] <<  0) & 0x000000FF)
         );
-        data.pitch_vel_ = buf.f;
+        data.pitch_pos_ = buf.f;
         data.load_mode_ = can_data[4 + (int)MODE_ID::LOAD];
         data.fire_mode_ = can_data[4 + (int)MODE_ID::FIRE];
         data.speed_mode_ = can_data[4 + (int)MODE_ID::SPEED];
