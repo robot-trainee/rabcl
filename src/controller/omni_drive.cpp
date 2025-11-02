@@ -16,9 +16,11 @@ OmniDrive::~OmniDrive()
 }
 
 void OmniDrive::CalcVel(
-    double cmd_vel_x, double cmd_vel_y, double cmd_vel_z, double& front_right, double& front_left, double& back_right, double& back_left)
+    double cmd_vel_x, double cmd_vel_y, double cmd_vel_z,
+    double & front_right, double & front_left, double & back_right, double & back_left,
+    double offset_rot)
 {
-    double theta = std::atan2(cmd_vel_y, cmd_vel_x);
+    double theta = std::atan2(cmd_vel_y, cmd_vel_x) + offset_rot;
     double norm = std::sqrt(std::pow(cmd_vel_x, 2) + std::pow(cmd_vel_y, 2));
 
     // rad/s = (m/s) * (rad) / (wheel_d)

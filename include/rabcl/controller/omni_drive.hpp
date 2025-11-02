@@ -12,7 +12,8 @@ public:
     ~OmniDrive();
     void CalcVel(
         double cmd_vel_x, double cmd_vel_y, double cmd_vel_z,
-        double& front_right, double& front_left, double& back_right, double& back_left);
+        double& front_right, double& front_left, double& back_right, double& back_left,
+        double offset_rot = 0.0);
 
 private:
     double wheel_d_;
