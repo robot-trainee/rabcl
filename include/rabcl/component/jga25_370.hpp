@@ -12,8 +12,8 @@ private:
     static constexpr double ENCODER_SAMPLING_FREQUENCY = 0.2;
     static constexpr int NUM_ENCODER_DATA_BUF = 20; // motor:10ms, sampling_frequency:200ms
     static constexpr int NUM_ENCODER_RESOLUTION = 44;
-    static constexpr double MOTOR_CONTROL_POS_P = 0.1;
-    static constexpr double MOTOR_CONTROL_POS_D = 0.0;
+    static constexpr double MOTOR_CONTROL_POS_P = 1400.0;
+    static constexpr double MOTOR_CONTROL_POS_D = 200.0;
     static constexpr double MOTOR_CONTROL_VEL_P = 1.6;
     static constexpr double MOTOR_CONTROL_VEL_D = 0.2;
 

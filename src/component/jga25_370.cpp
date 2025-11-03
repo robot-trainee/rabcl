@@ -39,9 +39,9 @@ void JGA25_370::UpdataEncoder()
         std::begin(encoder_count_buf_),
         std::end(encoder_count_buf_),
         std::remove_reference<decltype(*std::begin(encoder_count_buf_))>::type{});
-    act_pos_ = -1.0 * (double)encoder_count_sum_ * count_to_pos_factor_;
+    act_pos_ = (double)encoder_count_sum_ * count_to_pos_factor_;
     act_pos_ = std::fmod(act_pos_, 2.0 * M_PI);
-    if (act_pos_ < 2.0 * M_PI) {
+    if (act_pos_ < 0) {
         act_pos_ += 2.0 * M_PI;
     }
     act_vel_ = -1.0 * (double)encoder_count * count_to_vel_factor_;
@@ -75,14 +75,21 @@ double JGA25_370::GetActPos()
 int16_t JGA25_370::CalcMotorPosOutput()
 {
     // TODO: 制御器入れる、とりあえず適当なPD制御入れとく
-    // TODO: -pi ~ piで値取らないとだめな気がする
     int16_t error;
     double diff = cmd_value_ - act_pos_;
+    diff = std::fmod(diff, 2.0 * M_PI);
+    if (diff < 0) {
+        diff += 2.0 * M_PI;
+    }
+    if (diff > M_PI) {
+        diff -= 2.0 * M_PI;
+    }
+
     error = (int16_t)(
         MOTOR_CONTROL_POS_P * diff + MOTOR_CONTROL_POS_D * (diff - pre_diff_));
     pre_diff_ = diff;
 
-    int16_t output = pre_output_ + error;
+    int16_t output = error;
 
     if (std::abs(output) > motor_output_max_)
     {
