@@ -151,6 +151,26 @@ bool Can::UpdateData(uint32_t idx, const uint8_t can_data[8], Info& data)
         );
         data.back_left_vel_act_ = buf.f;
     }
+    else if (idx == (uint32_t)CAN_ID::PITCH_RX)
+    {
+        data.command_byte_ = can_data[0];
+        data.temperature_ = can_data[1];
+        buf.ui = (int16_t) (
+            (((int16_t)can_data[2] <<  8) & 0xFF00)
+          | (((int16_t)can_data[3] <<  0) & 0x00FF)
+        );
+        data.torque_ = buf.f;
+        buf.ui = (int16_t) (
+            (((int16_t)can_data[4] <<  8) & 0xFF00)
+          | (((int16_t)can_data[5] <<  0) & 0x00FF)
+        );
+        data.speed_ = buf.f;
+        buf.ui = (int16_t) (
+            (((int16_t)can_data[6] <<  8) & 0xFF00)
+          | (((int16_t)can_data[7] <<  0) & 0x00FF)
+        );
+        data.position_ = buf.f;
+    }
     else
     {
         return false;
@@ -191,5 +211,17 @@ void Can::Prepare1Float4IntData(float in_1, const uint8_t in_2[4], uint8_t can_d
     can_data[5] = in_2[1];
     can_data[6] = in_2[2];
     can_data[7] = in_2[3];
+}
+
+void Can::PrepareLKMotorPositionCmd(int32_t pos, uint16_t max_speed, uint8_t can_data[8])
+{
+    can_data[0] = 0xA4;
+    can_data[1] = 0x00;
+    can_data[2] = (uint8_t)( max_speed        & 0xFF);
+    can_data[3] = (uint8_t)((max_speed >> 8 ) & 0xFF);
+    can_data[4] = (uint8_t)( pos        & 0xFF);
+    can_data[5] = (uint8_t)((pos >> 8 ) & 0xFF);
+    can_data[6] = (uint8_t)((pos >> 16) & 0xFF);
+    can_data[7] = (uint8_t)((pos >> 24) & 0xFF);
 }
 } // namespace rabcl

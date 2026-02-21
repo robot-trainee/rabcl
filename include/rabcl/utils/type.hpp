@@ -25,6 +25,8 @@ enum CAN_ID
     CAN_CHASSIS_BACK_CMD,
     CAN_CHASSIS_FRONT_ACT,
     CAN_CHASSIS_BACK_ACT,
+    PITCH_TX = 0x141,
+    PITCH_RX = 0x141
 };
 
 enum MODE_ID
@@ -62,6 +64,13 @@ public:
     float front_left_vel_act_;
     float back_right_vel_act_;
     float back_left_vel_act_;
+
+    // tmp
+    uint8_t command_byte_;
+    uint8_t temperature_;
+    uint16_t torque_;
+    uint16_t speed_;
+    uint16_t position_;
 };
 } // namespace rabcl
 
