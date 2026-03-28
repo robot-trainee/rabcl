@@ -1,5 +1,5 @@
-#ifndef RABCL_OMNI_DRIVE_HPP
-#define RABCL_OMNI_DRIVE_HPP
+#ifndef RABCL__CONTROLLER__OMNI_DRIVE_HPP_
+#define RABCL__CONTROLLER__OMNI_DRIVE_HPP_
 
 #include <cstdint>
 
@@ -8,18 +8,17 @@ namespace rabcl
 class OmniDrive
 {
 public:
-    OmniDrive(double wheel_d, double body_d);
-    ~OmniDrive();
-    void CalcVel(
-        double cmd_vel_x, double cmd_vel_y, double cmd_vel_z,
-        double& front_right, double& front_left, double& back_right, double& back_left,
-        double offset_rot = 0.0);
+  OmniDrive(double wheel_d, double body_d);
+  ~OmniDrive();
+  void CalcVel(
+    double cmd_vel_x, double cmd_vel_y, double cmd_vel_z,
+    double & front_right, double & front_left, double & back_right, double & back_left,
+    double offset_rot = 0.0);
 
 private:
-    double wheel_d_;
-    double body_d_;
-
+  double wheel_d_;
+  double body_d_;
 };
-} // namespace rabcl
+}  // namespace rabcl
 
-#endif
+#endif  // RABCL__CONTROLLER__OMNI_DRIVE_HPP_
