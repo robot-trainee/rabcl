@@ -45,7 +45,29 @@ ament_export_libraries(rabcl)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
+  set(ament_cmake_copyright_FOUND TRUE)
+  set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(test_utils test/test_utils.cpp)
+  target_link_libraries(test_utils rabcl)
+
+  ament_add_gtest(test_omni_drive test/test_omni_drive.cpp)
+  target_link_libraries(test_omni_drive rabcl)
+
+  ament_add_gtest(test_uart test/test_uart.cpp)
+  target_link_libraries(test_uart rabcl)
+
+  ament_add_gtest(test_can test/test_can.cpp)
+  target_link_libraries(test_can rabcl)
+
+  ament_add_gtest(test_jga25_370 test/test_jga25_370.cpp)
+  target_link_libraries(test_jga25_370 rabcl)
+
+  ament_add_gtest(test_ld_20mg test/test_ld_20mg.cpp)
+  target_link_libraries(test_ld_20mg rabcl)
 endif()
 
 ament_package()
