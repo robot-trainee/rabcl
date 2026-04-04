@@ -1,15 +1,17 @@
 #include "rabcl/interface/can.hpp"
 
+#include <cmath>
+
 namespace rabcl
 {
 Can::Can()
 {
-    // NOP
+  // NOP
 }
 
 Can::~Can()
 {
-    // NOP
+  // NOP
 }
 
 bool Can::UpdateData(uint32_t idx, const uint8_t can_data[8], Info & data)
@@ -18,141 +20,62 @@ bool Can::UpdateData(uint32_t idx, const uint8_t can_data[8], Info & data)
     float f;
     int32_t ui;
   } buf;
+
+  // --- UART reference data (from turret board via internal CAN, proto2 compatible)
   if (idx == static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_X_Y)) {
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF)
-    );
+      ((static_cast<int32_t>(can_data[2]) << 8)  & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[3]) << 0)  & 0x000000FF));
     data.chassis_vel_x_ = buf.f;
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF)
-    );
+      ((static_cast<int32_t>(can_data[6]) << 8)  & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[7]) << 0)  & 0x000000FF));
     data.chassis_vel_y_ = buf.f;
   } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_Z_YAW)) {
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF)
-    );
+      ((static_cast<int32_t>(can_data[2]) << 8)  & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[3]) << 0)  & 0x000000FF));
     data.chassis_vel_z_ = buf.f;
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF)
-    );
+      ((static_cast<int32_t>(can_data[6]) << 8)  & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[7]) << 0)  & 0x000000FF));
     data.yaw_pos_ = buf.f;
   } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_PITCH_MODES)) {
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF)
-    );
+      ((static_cast<int32_t>(can_data[2]) << 8)  & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[3]) << 0)  & 0x000000FF));
     data.pitch_pos_ = buf.f;
-    data.load_mode_ = can_data[4 + static_cast<int>(MODE_ID::LOAD)];
-    data.fire_mode_ = can_data[4 + static_cast<int>(MODE_ID::FIRE)];
-    data.speed_mode_ = can_data[4 + static_cast<int>(MODE_ID::SPEED)];
+    data.load_mode_    = can_data[4 + static_cast<int>(MODE_ID::LOAD)];
+    data.fire_mode_    = can_data[4 + static_cast<int>(MODE_ID::FIRE)];
+    data.speed_mode_   = can_data[4 + static_cast<int>(MODE_ID::SPEED)];
     data.chassis_mode_ = can_data[4 + static_cast<int>(MODE_ID::CHASSIS)];
-  } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_YAW_CMD_ACT)) {
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF)
-    );
-    data.yaw_pos_cmd_ = buf.f;
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF)
-    );
-    data.yaw_pos_act_ = buf.f;
-  } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_FRONT_CMD)) {
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF)
-    );
-    data.front_right_vel_cmd_ = buf.f;
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF)
-    );
-    data.front_left_vel_cmd_ = buf.f;
-  } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_BACK_CMD)) {
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF)
-    );
-    data.back_right_vel_cmd_ = buf.f;
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF)
-    );
-    data.back_left_vel_cmd_ = buf.f;
-  } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_FRONT_ACT)) {
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF)
-    );
-    data.front_right_vel_act_ = buf.f;
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF)
-    );
-    data.front_left_vel_act_ = buf.f;
-  } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_BACK_ACT)) {
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF)
-    );
-    data.back_right_vel_act_ = buf.f;
-    buf.ui = static_cast<int32_t>(
-      ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF)
-    );
-    data.back_left_vel_act_ = buf.f;
+
+  // --- LK motor feedback
+  } else if (idx == static_cast<uint32_t>(CAN_ID::YAW_RX)) {
+    ParseLKMotorFeedback(can_data, data.yaw_act_);
   } else if (idx == static_cast<uint32_t>(CAN_ID::PITCH_RX)) {
-    data.command_byte_ = can_data[0];
-    data.temperature_ = can_data[1];
-    buf.ui = static_cast<int16_t>(
-      ((static_cast<int16_t>(can_data[2]) << 8) & 0xFF00) |
-      ((static_cast<int16_t>(can_data[3]) << 0) & 0x00FF)
-    );
-    data.torque_ = buf.f;
-    buf.ui = static_cast<int16_t>(
-      ((static_cast<int16_t>(can_data[4]) << 8) & 0xFF00) |
-      ((static_cast<int16_t>(can_data[5]) << 0) & 0x00FF)
-    );
-    data.speed_ = buf.f;
-    buf.ui = static_cast<int16_t>(
-      ((static_cast<int16_t>(can_data[6]) << 8) & 0xFF00) |
-      ((static_cast<int16_t>(can_data[7]) << 0) & 0x00FF)
-    );
-    data.position_ = buf.f;
+    ParseLKMotorFeedback(can_data, data.pitch_act_);
+
+  // --- DM2325 feedback
+  } else if (idx == static_cast<uint32_t>(CAN_ID::CHASSIS_FRONT_RIGHT_RX)) {
+    ParseDMMotorFeedback(can_data, data.chassis_fr_act_);
+  } else if (idx == static_cast<uint32_t>(CAN_ID::CHASSIS_FRONT_LEFT_RX)) {
+    ParseDMMotorFeedback(can_data, data.chassis_fl_act_);
+  } else if (idx == static_cast<uint32_t>(CAN_ID::CHASSIS_BACK_RIGHT_RX)) {
+    ParseDMMotorFeedback(can_data, data.chassis_br_act_);
+  } else if (idx == static_cast<uint32_t>(CAN_ID::CHASSIS_BACK_LEFT_RX)) {
+    ParseDMMotorFeedback(can_data, data.chassis_bl_act_);
+
   } else {
     return false;
   }
@@ -194,19 +117,7 @@ void Can::Prepare1Float4IntData(float in_1, const uint8_t in_2[4], uint8_t can_d
   can_data[7] = in_2[3];
 }
 
-void Can::PrepareLKMotorPositionCmd(int32_t pos, uint16_t max_speed, uint8_t can_data[8])
-{
-  can_data[0] = 0xA4;
-  can_data[1] = 0x00;
-  can_data[2] = static_cast<uint8_t>( max_speed & 0xFF);
-  can_data[3] = static_cast<uint8_t>((max_speed >> 8 ) & 0xFF);
-  can_data[4] = static_cast<uint8_t>( pos & 0xFF);
-  can_data[5] = static_cast<uint8_t>((pos >> 8 ) & 0xFF);
-  can_data[6] = static_cast<uint8_t>((pos >> 16) & 0xFF);
-  can_data[7] = static_cast<uint8_t>((pos >> 24) & 0xFF);
-}
-
-void Can::PrepareLKMotorMotorOffCmd(uint8_t can_data[8])
+void Can::PrepareLKMotorMotorOff(uint8_t can_data[8])
 {
   can_data[0] = 0x80;
   can_data[1] = 0x00;
@@ -218,7 +129,7 @@ void Can::PrepareLKMotorMotorOffCmd(uint8_t can_data[8])
   can_data[7] = 0x00;
 }
 
-void Can::PrepareLKMotorMotorOnCmd(uint8_t can_data[8])
+void Can::PrepareLKMotorMotorOn(uint8_t can_data[8])
 {
   can_data[0] = 0x88;
   can_data[1] = 0x00;
@@ -230,7 +141,7 @@ void Can::PrepareLKMotorMotorOnCmd(uint8_t can_data[8])
   can_data[7] = 0x00;
 }
 
-void Can::PrepareLKMotorMotorStopCmd(uint8_t can_data[8])
+void Can::PrepareLKMotorMotorStop(uint8_t can_data[8])
 {
   can_data[0] = 0x81;
   can_data[1] = 0x00;
@@ -241,4 +152,69 @@ void Can::PrepareLKMotorMotorStopCmd(uint8_t can_data[8])
   can_data[6] = 0x00;
   can_data[7] = 0x00;
 }
+
+void Can::PrepareLKMotorPositionCmd(int32_t pos, uint16_t max_speed, uint8_t can_data[8])
+{
+  can_data[0] = 0xA4;
+  can_data[1] = 0x00;
+  can_data[2] = static_cast<uint8_t>( max_speed & 0xFF);
+  can_data[3] = static_cast<uint8_t>((max_speed >> 8) & 0xFF);
+  can_data[4] = static_cast<uint8_t>( pos & 0xFF);
+  can_data[5] = static_cast<uint8_t>((pos >> 8)  & 0xFF);
+  can_data[6] = static_cast<uint8_t>((pos >> 16) & 0xFF);
+  can_data[7] = static_cast<uint8_t>((pos >> 24) & 0xFF);
+}
+
+void Can::PrepareLKMotorReadParam(uint8_t param_id, uint8_t can_data[8])
+{
+  can_data[0] = 0xC0;
+  can_data[1] = param_id;
+  can_data[2] = 0x00;
+  can_data[3] = 0x00;
+  can_data[4] = 0x00;
+  can_data[5] = 0x00;
+  can_data[6] = 0x00;
+  can_data[7] = 0x00;
+}
+
+void Can::PrepareLKMotorWritePID(uint8_t param_id, uint16_t kp, uint16_t ki, uint16_t kd, uint8_t can_data[8])
+{
+  can_data[0] = 0xC1;
+  can_data[1] = param_id;
+  can_data[2] = static_cast<uint8_t>( kp & 0xFF);
+  can_data[3] = static_cast<uint8_t>((kp >> 8) & 0xFF);
+  can_data[4] = static_cast<uint8_t>( ki & 0xFF);
+  can_data[5] = static_cast<uint8_t>((ki >> 8) & 0xFF);
+  can_data[6] = static_cast<uint8_t>( kd & 0xFF);
+  can_data[7] = static_cast<uint8_t>((kd >> 8) & 0xFF);
+}
+
+void Can::ParseLKMotorFeedback(const uint8_t can_data[8], MotorInfo & motor)
+{
+  motor.temperature_ = static_cast<float>(can_data[1]);
+
+  int16_t raw_current = static_cast<int16_t>(
+    (static_cast<uint16_t>(can_data[3]) << 8) | can_data[2]);
+  motor.current_ = raw_current * 0.01f;  // 0.01 A/LSB
+
+  int16_t raw_speed = static_cast<int16_t>(
+    (static_cast<uint16_t>(can_data[5]) << 8) | can_data[4]);
+  motor.velocity_ = raw_speed * (static_cast<float>(M_PI) / 180.0f);  // deg/s → rad/s
+
+  uint16_t raw_pos = (static_cast<uint16_t>(can_data[7]) << 8) | can_data[6];
+  motor.position_ = raw_pos / 65535.0f * 2.0f * static_cast<float>(M_PI);  // uint16(0~65535) → 0~2π rad
+}
+
+void Can::ParseDMMotorFeedback(const uint8_t can_data[8], MotorInfo & motor)
+{
+  uint16_t pos_raw = (static_cast<uint16_t>(can_data[2]) << 8) | can_data[3];
+  uint16_t vel_raw = (static_cast<uint16_t>(can_data[4]) << 4) | (can_data[5] >> 4);
+  uint16_t tor_raw = (static_cast<uint16_t>(can_data[5] & 0x0F) << 8) | can_data[6];
+
+  motor.position_        = (pos_raw / 65535.0f * 2.0f * DM_PMAX - DM_PMAX) / DM_GR;  // uint16(0~65535) → [-PMAX, +PMAX] → /GR
+  motor.velocity_        = (vel_raw / 4095.0f  * 2.0f * DM_VMAX - DM_VMAX) / DM_GR;  // uint12(0~4095) → [-VMAX, +VMAX] → /GR
+  motor.torque_          =  tor_raw / 4095.0f  * 2.0f * DM_TMAX - DM_TMAX;            // uint12(0~4095) → [-TMAX, +TMAX]
+  motor.temperature_mos_ = static_cast<float>(can_data[7]);
+}
+
 }  // namespace rabcl

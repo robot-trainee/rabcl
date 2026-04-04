@@ -10,15 +10,28 @@ namespace rabcl
 class Can
 {
 public:
+  // DM2325 decode parameters (must match DM AC-Tools settings)
+  static constexpr float DM_PMAX = 78.5f;   // [rad] motor shaft
+  static constexpr float DM_VMAX = 200.0f;  // [rad/s] motor shaft
+  static constexpr float DM_TMAX = 3.0f;    // [Nm] output shaft
+  static constexpr float DM_GR   = 25.0f;   // gear ratio
+
+public:
   Can();
   ~Can();
   static bool UpdateData(uint32_t idx, const uint8_t can_data[8], Info & data);
   static void Prepare2FloatData(float in_1, float in_2, uint8_t can_data[8]);
   static void Prepare1Float4IntData(float in_1, const uint8_t in_2[4], uint8_t can_data[8]);
-  static void PrepareLKMotorMotorOffCmd(uint8_t can_data[8]);
-  static void PrepareLKMotorMotorOnCmd(uint8_t can_data[8]);
-  static void PrepareLKMotorMotorStopCmd(uint8_t can_data[8]);
+  static void PrepareLKMotorMotorOff(uint8_t can_data[8]);
+  static void PrepareLKMotorMotorOn(uint8_t can_data[8]);
+  static void PrepareLKMotorMotorStop(uint8_t can_data[8]);
   static void PrepareLKMotorPositionCmd(int32_t pos, uint16_t max_speed, uint8_t can_data[8]);
+  static void PrepareLKMotorReadParam(uint8_t param_id, uint8_t can_data[8]);
+  static void PrepareLKMotorWritePID(uint8_t param_id, uint16_t kp, uint16_t ki, uint16_t kd, uint8_t can_data[8]);
+
+private:
+  static void ParseLKMotorFeedback(const uint8_t can_data[8], MotorInfo & motor);
+  static void ParseDMMotorFeedback(const uint8_t can_data[8], MotorInfo & motor);
 };
 }  // namespace rabcl
 
