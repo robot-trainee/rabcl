@@ -189,6 +189,35 @@ void Can::PrepareLKMotorWritePID(uint8_t param_id, uint16_t kp, uint16_t ki, uin
   can_data[7] = static_cast<uint8_t>((kd >> 8) & 0xFF);
 }
 
+void Can::PrepareDMMotorEnable(uint8_t can_data[8])
+{
+  can_data[0] = 0xFF;
+  can_data[1] = 0xFF;
+  can_data[2] = 0xFF;
+  can_data[3] = 0xFF;
+  can_data[4] = 0xFF;
+  can_data[5] = 0xFF;
+  can_data[6] = 0xFF;
+  can_data[7] = 0xFC;
+}
+
+void Can::PrepareDMMotorVelocityCmd(float velocity, uint8_t can_data[8])
+{
+  union {
+    float f;
+    uint8_t b[4];
+  } buf;
+  buf.f = velocity;  // output shaft rad/s
+  can_data[0] = buf.b[0];
+  can_data[1] = buf.b[1];
+  can_data[2] = buf.b[2];
+  can_data[3] = buf.b[3];
+  can_data[4] = 0x00;
+  can_data[5] = 0x00;
+  can_data[6] = 0x00;
+  can_data[7] = 0x00;
+}
+
 void Can::ParseLKMotorFeedback(const uint8_t can_data[8], MotorInfo & motor)
 {
   motor.temperature_ = static_cast<float>(can_data[1]);
@@ -207,14 +236,14 @@ void Can::ParseLKMotorFeedback(const uint8_t can_data[8], MotorInfo & motor)
 
 void Can::ParseDMMotorFeedback(const uint8_t can_data[8], MotorInfo & motor)
 {
-  uint16_t pos_raw = (static_cast<uint16_t>(can_data[2]) << 8) | can_data[3];
-  uint16_t vel_raw = (static_cast<uint16_t>(can_data[4]) << 4) | (can_data[5] >> 4);
-  uint16_t tor_raw = (static_cast<uint16_t>(can_data[5] & 0x0F) << 8) | can_data[6];
+  uint16_t pos_raw = (static_cast<uint16_t>(can_data[1]) << 8) | can_data[2];
+  uint16_t vel_raw = (static_cast<uint16_t>(can_data[3]) << 4) | (can_data[4] >> 4);
+  uint16_t tor_raw = (static_cast<uint16_t>(can_data[4] & 0x0F) << 8) | can_data[5];
 
   motor.position_        = (pos_raw / 65535.0f * 2.0f * DM_PMAX - DM_PMAX) / DM_GR;  // uint16(0~65535) → [-PMAX, +PMAX] → /GR
-  motor.velocity_        = (vel_raw / 4095.0f  * 2.0f * DM_VMAX - DM_VMAX) / DM_GR;  // uint12(0~4095) → [-VMAX, +VMAX] → /GR
+  motor.velocity_        =  vel_raw / 4095.0f  * 2.0f * DM_VMAX - DM_VMAX;           // uint12(0~4095) → [-VMAX, +VMAX] (already output shaft)
   motor.torque_          =  tor_raw / 4095.0f  * 2.0f * DM_TMAX - DM_TMAX;            // uint12(0~4095) → [-TMAX, +TMAX]
-  motor.temperature_mos_ = static_cast<float>(can_data[7]);
+  motor.temperature_mos_ = static_cast<float>(can_data[6]);                            // D[6]=T_MOS, D[7]=T_Rotor
 }
 
 }  // namespace rabcl

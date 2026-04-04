@@ -28,6 +28,8 @@ public:
   static void PrepareLKMotorPositionCmd(int32_t pos, uint16_t max_speed, uint8_t can_data[8]);
   static void PrepareLKMotorReadParam(uint8_t param_id, uint8_t can_data[8]);
   static void PrepareLKMotorWritePID(uint8_t param_id, uint16_t kp, uint16_t ki, uint16_t kd, uint8_t can_data[8]);
+  static void PrepareDMMotorEnable(uint8_t can_data[8]);
+  static void PrepareDMMotorVelocityCmd(float velocity, uint8_t can_data[8]);
 
 private:
   static void ParseLKMotorFeedback(const uint8_t can_data[8], MotorInfo & motor);
