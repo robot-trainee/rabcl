@@ -47,6 +47,20 @@ enum MODE_ID
   CHASSIS
 };
 
+class ImuInfo
+{
+public:
+  float acc_x_;    // [m/s²]
+  float acc_y_;
+  float acc_z_;
+  float gyro_x_;   // [rad/s]
+  float gyro_y_;
+  float gyro_z_;
+  float euler_heading_;  // [rad]
+  float euler_roll_;     // [rad]
+  float euler_pitch_;    // [rad]
+};
+
 class MotorInfo
 {
 public:
@@ -79,6 +93,9 @@ public:
   MotorInfo chassis_fl_cmd_;
   MotorInfo chassis_br_cmd_;
   MotorInfo chassis_bl_cmd_;
+
+  // imu
+  ImuInfo imu_;
 
   // actual
   MotorInfo yaw_act_;
