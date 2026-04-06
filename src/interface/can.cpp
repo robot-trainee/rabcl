@@ -189,6 +189,34 @@ void Can::PrepareLKMotorWritePID(uint8_t param_id, uint16_t kp, uint16_t ki, uin
   can_data[7] = static_cast<uint8_t>((kd >> 8) & 0xFF);
 }
 
+void Can::PrepareRMDMotorReadPID(uint8_t can_data[8])
+{
+  can_data[0] = 0x30;
+  can_data[1] = 0x00;
+  can_data[2] = 0x00;
+  can_data[3] = 0x00;
+  can_data[4] = 0x00;
+  can_data[5] = 0x00;
+  can_data[6] = 0x00;
+  can_data[7] = 0x00;
+}
+
+void Can::PrepareRMDMotorWritePIDToRAM(
+  uint8_t curr_kp, uint8_t curr_ki,
+  uint8_t speed_kp, uint8_t speed_ki,
+  uint8_t pos_kp, uint8_t pos_ki,
+  uint8_t can_data[8])
+{
+  can_data[0] = 0x31;
+  can_data[1] = 0x00;
+  can_data[2] = curr_kp;
+  can_data[3] = curr_ki;
+  can_data[4] = speed_kp;
+  can_data[5] = speed_ki;
+  can_data[6] = pos_kp;
+  can_data[7] = pos_ki;
+}
+
 void Can::PrepareDMMotorEnable(uint8_t can_data[8])
 {
   can_data[0] = 0xFF;
