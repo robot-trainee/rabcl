@@ -30,9 +30,9 @@ void OmniDrive::CalcVel(
   back_left = norm * std::sin(theta + M_PI * 0.25) * (2.0 * M_PI) / (M_PI * wheel_d_);
 
     // rad/s = (rad/s) * (body_d / wheel_d)
-  front_right -= cmd_vel_z * body_d_ / wheel_d_;
-  front_left -= cmd_vel_z * body_d_ / wheel_d_;
-  back_right -= cmd_vel_z * body_d_ / wheel_d_;
-  back_left -= cmd_vel_z * body_d_ / wheel_d_;
+  front_right += cmd_vel_z * body_d_ / wheel_d_;
+  front_left += cmd_vel_z * body_d_ / wheel_d_;
+  back_right += cmd_vel_z * body_d_ / wheel_d_;
+  back_left += cmd_vel_z * body_d_ / wheel_d_;
 }
 }  // namespace rabcl
