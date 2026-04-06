@@ -19,21 +19,33 @@ public:
 public:
   Can();
   ~Can();
-  static bool UpdateData(uint32_t idx, const uint8_t can_data[8], Info & data);
+  static bool UpdateData(
+    uint32_t idx,
+    const uint8_t can_data[8],
+    Info & data,
+    float yaw_offset /* [rad] */ = 0.0f,
+    float pitch_offset /* [rad] */ = 0.0f);
   static void Prepare2FloatData(float in_1, float in_2, uint8_t can_data[8]);
   static void Prepare1Float4IntData(float in_1, const uint8_t in_2[4], uint8_t can_data[8]);
   static void PrepareLKMotorMotorOff(uint8_t can_data[8]);
   static void PrepareLKMotorMotorOn(uint8_t can_data[8]);
   static void PrepareLKMotorMotorStop(uint8_t can_data[8]);
-  static void PrepareLKMotorPositionCmd(int32_t pos /* [0.01 deg] */, uint16_t max_speed /* [dps] */, uint8_t can_data[8]);
+  static void PrepareLKMotorPositionCmd(
+    int32_t pos /* [0.01 deg] */,
+    uint16_t max_speed /* [dps] */,
+    uint8_t can_data[8]);
   static void PrepareLKMotorReadParam(uint8_t param_id, uint8_t can_data[8]);
-  static void PrepareLKMotorWritePID(uint8_t param_id, uint16_t kp, uint16_t ki, uint16_t kd, uint8_t can_data[8]);
+  static void PrepareLKMotorWritePID(
+    uint8_t param_id,
+    uint16_t kp, uint16_t ki, uint16_t kd,
+    uint8_t can_data[8]);
   static void PrepareRMDMotorReadPID(uint8_t can_data[8]);
   static void PrepareRMDMotorWritePIDToRAM(
     uint8_t curr_kp, uint8_t curr_ki,
     uint8_t speed_kp, uint8_t speed_ki,
     uint8_t pos_kp, uint8_t pos_ki,
     uint8_t can_data[8]);
+  static void PrepareLKMotorReadMotorState2(uint8_t can_data[8]);  // 0x9C: temp/current/speed/position (same format as 0xA4 response)
   static void PrepareDMMotorEnable(uint8_t can_data[8]);
   static void PrepareDMMotorVelocityCmd(float velocity /* [rad/s, output shaft] */, uint8_t can_data[8]);
 

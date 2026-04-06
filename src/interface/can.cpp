@@ -14,7 +14,9 @@ Can::~Can()
   // NOP
 }
 
-bool Can::UpdateData(uint32_t idx, const uint8_t can_data[8], Info & data)
+bool Can::UpdateData(
+  uint32_t idx, const uint8_t can_data[8], Info & data,
+  float yaw_offset, float pitch_offset)
 {
   union {
     float f;
@@ -63,8 +65,10 @@ bool Can::UpdateData(uint32_t idx, const uint8_t can_data[8], Info & data)
   // --- LK motor feedback
   } else if (idx == static_cast<uint32_t>(CAN_ID::YAW_RX)) {
     ParseLKMotorFeedback(can_data, data.yaw_act_);
+    data.yaw_act_.position_ -= yaw_offset;
   } else if (idx == static_cast<uint32_t>(CAN_ID::PITCH_RX)) {
     ParseLKMotorFeedback(can_data, data.pitch_act_);
+    data.pitch_act_.position_ -= pitch_offset;
 
   // --- DM2325 feedback
   } else if (idx == static_cast<uint32_t>(CAN_ID::CHASSIS_FRONT_RIGHT_RX)) {
@@ -153,7 +157,8 @@ void Can::PrepareLKMotorMotorStop(uint8_t can_data[8])
   can_data[7] = 0x00;
 }
 
-void Can::PrepareLKMotorPositionCmd(int32_t pos, uint16_t max_speed, uint8_t can_data[8])
+void Can::PrepareLKMotorPositionCmd(
+  int32_t pos, uint16_t max_speed, uint8_t can_data[8])
 {
   can_data[0] = 0xA4;
   can_data[1] = 0x00;
@@ -177,7 +182,9 @@ void Can::PrepareLKMotorReadParam(uint8_t param_id, uint8_t can_data[8])
   can_data[7] = 0x00;
 }
 
-void Can::PrepareLKMotorWritePID(uint8_t param_id, uint16_t kp, uint16_t ki, uint16_t kd, uint8_t can_data[8])
+void Can::PrepareLKMotorWritePID(
+  uint8_t param_id, uint16_t kp, uint16_t ki, uint16_t kd,
+  uint8_t can_data[8])
 {
   can_data[0] = 0xC1;
   can_data[1] = param_id;
@@ -215,6 +222,18 @@ void Can::PrepareRMDMotorWritePIDToRAM(
   can_data[5] = speed_ki;
   can_data[6] = pos_kp;
   can_data[7] = pos_ki;
+}
+
+void Can::PrepareLKMotorReadMotorState2(uint8_t can_data[8])
+{
+  can_data[0] = 0x9C;
+  can_data[1] = 0x00;
+  can_data[2] = 0x00;
+  can_data[3] = 0x00;
+  can_data[4] = 0x00;
+  can_data[5] = 0x00;
+  can_data[6] = 0x00;
+  can_data[7] = 0x00;
 }
 
 void Can::PrepareDMMotorEnable(uint8_t can_data[8])
