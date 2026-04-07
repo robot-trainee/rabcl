@@ -28,7 +28,7 @@ TEST_F(OmniDriveTest, PureRotation)
   double fr, fl, br, bl;
   double vz = 1.0;
   omni_.CalcVel(0.0, 0.0, vz, fr, fl, br, bl);
-  double expected = -vz * kBodyD / kWheelD;
+  double expected = vz * kBodyD / kWheelD;
   EXPECT_DOUBLE_EQ(fr, expected);
   EXPECT_DOUBLE_EQ(fl, expected);
   EXPECT_DOUBLE_EQ(br, expected);

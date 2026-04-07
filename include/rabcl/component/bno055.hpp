@@ -23,9 +23,9 @@ public:
   BNO055();
   ~BNO055();
 
-  void UpdateAccel(const uint8_t raw[6], ImuInfo& imu);
-  void UpdateGyro(const uint8_t raw[6], ImuInfo& imu);
-  void UpdateEuler(const uint8_t raw[6], ImuInfo& imu);
+  void UpdateAccel(const uint8_t raw[6], ImuInfo & imu);
+  void UpdateGyro(const uint8_t raw[6], ImuInfo & imu);
+  void UpdateEuler(const uint8_t raw[6], ImuInfo & imu);
 
 private:
   static constexpr float ACC_SCALE = 0.01f;

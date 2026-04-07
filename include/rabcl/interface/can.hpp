@@ -14,7 +14,7 @@ public:
   static constexpr float DM_PMAX = 78.5f;   // [rad] motor shaft
   static constexpr float DM_VMAX = 200.0f;  // [rad/s] motor shaft
   static constexpr float DM_TMAX = 3.0f;    // [Nm] output shaft
-  static constexpr float DM_GR   = 25.0f;   // gear ratio
+  static constexpr float DM_GR = 25.0f;     // gear ratio
 
 public:
   Can();
@@ -47,7 +47,9 @@ public:
     uint8_t can_data[8]);
   static void PrepareLKMotorReadMotorState2(uint8_t can_data[8]);  // 0x9C: temp/current/speed/position (same format as 0xA4 response)
   static void PrepareDMMotorEnable(uint8_t can_data[8]);
-  static void PrepareDMMotorVelocityCmd(float velocity /* [rad/s, output shaft] */, uint8_t can_data[8]);
+  static void PrepareDMMotorVelocityCmd(
+    float velocity /* [rad/s, output shaft] */,
+    uint8_t can_data[8]);
 
 private:
   static void ParseLKMotorFeedback(const uint8_t can_data[8], MotorInfo & motor);

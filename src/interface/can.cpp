@@ -28,38 +28,38 @@ bool Can::UpdateData(
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8)  & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0)  & 0x000000FF));
+      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF));
     data.chassis_vel_x_ = buf.f;
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8)  & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0)  & 0x000000FF));
+      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF));
     data.chassis_vel_y_ = buf.f;
   } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_Z_YAW)) {
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8)  & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0)  & 0x000000FF));
+      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF));
     data.chassis_vel_z_ = buf.f;
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[4]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[5]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[6]) << 8)  & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[7]) << 0)  & 0x000000FF));
+      ((static_cast<int32_t>(can_data[6]) << 8) & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[7]) << 0) & 0x000000FF));
     data.yaw_pos_ = buf.f;
   } else if (idx == static_cast<uint32_t>(CAN_ID::CAN_PITCH_MODES)) {
     buf.ui = static_cast<int32_t>(
       ((static_cast<int32_t>(can_data[0]) << 24) & 0xFF000000) |
       ((static_cast<int32_t>(can_data[1]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(can_data[2]) << 8)  & 0x0000FF00) |
-      ((static_cast<int32_t>(can_data[3]) << 0)  & 0x000000FF));
+      ((static_cast<int32_t>(can_data[2]) << 8) & 0x0000FF00) |
+      ((static_cast<int32_t>(can_data[3]) << 0) & 0x000000FF));
     data.pitch_pos_ = buf.f;
-    data.load_mode_    = can_data[4 + static_cast<int>(MODE_ID::LOAD)];
-    data.fire_mode_    = can_data[4 + static_cast<int>(MODE_ID::FIRE)];
-    data.speed_mode_   = can_data[4 + static_cast<int>(MODE_ID::SPEED)];
+    data.load_mode_ = can_data[4 + static_cast<int>(MODE_ID::LOAD)];
+    data.fire_mode_ = can_data[4 + static_cast<int>(MODE_ID::FIRE)];
+    data.speed_mode_ = can_data[4 + static_cast<int>(MODE_ID::SPEED)];
     data.chassis_mode_ = can_data[4 + static_cast<int>(MODE_ID::CHASSIS)];
 
   // --- LK motor feedback
@@ -165,7 +165,7 @@ void Can::PrepareLKMotorPositionCmd(
   can_data[2] = static_cast<uint8_t>( max_speed & 0xFF);
   can_data[3] = static_cast<uint8_t>((max_speed >> 8) & 0xFF);
   can_data[4] = static_cast<uint8_t>( pos & 0xFF);
-  can_data[5] = static_cast<uint8_t>((pos >> 8)  & 0xFF);
+  can_data[5] = static_cast<uint8_t>((pos >> 8) & 0xFF);
   can_data[6] = static_cast<uint8_t>((pos >> 16) & 0xFF);
   can_data[7] = static_cast<uint8_t>((pos >> 24) & 0xFF);
 }
@@ -287,9 +287,9 @@ void Can::ParseDMMotorFeedback(const uint8_t can_data[8], MotorInfo & motor)
   uint16_t vel_raw = (static_cast<uint16_t>(can_data[3]) << 4) | (can_data[4] >> 4);
   uint16_t tor_raw = (static_cast<uint16_t>(can_data[4] & 0x0F) << 8) | can_data[5];
 
-  motor.position_        = (pos_raw / 65535.0f * 2.0f * DM_PMAX - DM_PMAX) / DM_GR;  // uint16(0~65535) → [-PMAX, +PMAX] → /GR
-  motor.velocity_        =  vel_raw / 4095.0f  * 2.0f * DM_VMAX - DM_VMAX;           // uint12(0~4095) → [-VMAX, +VMAX] (already output shaft)
-  motor.torque_          =  tor_raw / 4095.0f  * 2.0f * DM_TMAX - DM_TMAX;            // uint12(0~4095) → [-TMAX, +TMAX]
+  motor.position_ = (pos_raw / 65535.0f * 2.0f * DM_PMAX - DM_PMAX) / DM_GR;         // uint16(0~65535) → [-PMAX, +PMAX] → /GR
+  motor.velocity_ = vel_raw / 4095.0f * 2.0f * DM_VMAX - DM_VMAX;                    // uint12(0~4095) → [-VMAX, +VMAX] (already output shaft)
+  motor.torque_ = tor_raw / 4095.0f * 2.0f * DM_TMAX - DM_TMAX;                       // uint12(0~4095) → [-TMAX, +TMAX]
   motor.temperature_mos_ = static_cast<float>(can_data[6]);                            // D[6]=T_MOS, D[7]=T_Rotor
 }
 

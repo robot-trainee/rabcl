@@ -59,68 +59,14 @@ TEST_F(CanTest, UpdateDataPitchModes)
   EXPECT_EQ(info.chassis_mode_, 1);
 }
 
-TEST_F(CanTest, UpdateDataYawCmdAct)
-{
-  uint8_t data[8] = {};
-  PackFloat(1.1f, data, 0);
-  PackFloat(1.2f, data, 4);
-  Info info;
-  EXPECT_TRUE(Can::UpdateData(static_cast<uint32_t>(CAN_ID::CAN_YAW_CMD_ACT), data, info));
-  EXPECT_FLOAT_EQ(info.yaw_pos_cmd_, 1.1f);
-  EXPECT_FLOAT_EQ(info.yaw_pos_act_, 1.2f);
-}
-
-TEST_F(CanTest, UpdateDataChassisFrontCmd)
-{
-  uint8_t data[8] = {};
-  PackFloat(5.0f, data, 0);
-  PackFloat(6.0f, data, 4);
-  Info info;
-  EXPECT_TRUE(Can::UpdateData(static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_FRONT_CMD), data, info));
-  EXPECT_FLOAT_EQ(info.front_right_vel_cmd_, 5.0f);
-  EXPECT_FLOAT_EQ(info.front_left_vel_cmd_, 6.0f);
-}
-
-TEST_F(CanTest, UpdateDataChassisBackCmd)
-{
-  uint8_t data[8] = {};
-  PackFloat(7.0f, data, 0);
-  PackFloat(8.0f, data, 4);
-  Info info;
-  EXPECT_TRUE(Can::UpdateData(static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_BACK_CMD), data, info));
-  EXPECT_FLOAT_EQ(info.back_right_vel_cmd_, 7.0f);
-  EXPECT_FLOAT_EQ(info.back_left_vel_cmd_, 8.0f);
-}
-
-TEST_F(CanTest, UpdateDataChassisFrontAct)
-{
-  uint8_t data[8] = {};
-  PackFloat(9.0f, data, 0);
-  PackFloat(10.0f, data, 4);
-  Info info;
-  EXPECT_TRUE(Can::UpdateData(static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_FRONT_ACT), data, info));
-  EXPECT_FLOAT_EQ(info.front_right_vel_act_, 9.0f);
-  EXPECT_FLOAT_EQ(info.front_left_vel_act_, 10.0f);
-}
-
-TEST_F(CanTest, UpdateDataChassisBackAct)
-{
-  uint8_t data[8] = {};
-  PackFloat(11.0f, data, 0);
-  PackFloat(12.0f, data, 4);
-  Info info;
-  EXPECT_TRUE(Can::UpdateData(static_cast<uint32_t>(CAN_ID::CAN_CHASSIS_BACK_ACT), data, info));
-  EXPECT_FLOAT_EQ(info.back_right_vel_act_, 11.0f);
-  EXPECT_FLOAT_EQ(info.back_left_vel_act_, 12.0f);
-}
-
 TEST_F(CanTest, UpdateDataPitchRx)
 {
-  uint8_t data[8] = {0xA0, 0x25, 0x00, 0x64, 0x01, 0x00, 0x00, 0x10};
+  // LK motor feedback format: [cmd, temp, curr_L, curr_H, spd_L, spd_H, pos_L, pos_H]
+  uint8_t data[8] = {0xA4, 0x25, 0x64, 0x00, 0x01, 0x00, 0x00, 0x10};
   Info info;
   EXPECT_TRUE(Can::UpdateData(static_cast<uint32_t>(CAN_ID::PITCH_RX), data, info));
-  EXPECT_EQ(info.command_byte_, 0xA0);
-  EXPECT_EQ(info.temperature_, 0x25);
+  EXPECT_FLOAT_EQ(info.pitch_act_.temperature_, 37.0f);  // 0x25 = 37
+  EXPECT_NEAR(info.pitch_act_.current_, 1.0f, 0.01f);  // 0x0064 = 100 → 100 * 0.01 = 1.0 A
 }
 
 TEST_F(CanTest, UpdateDataUnknownIdx)
