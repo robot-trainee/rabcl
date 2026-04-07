@@ -125,6 +125,77 @@ TEST_F(UartTest, CorruptedPayloadDetected)
   EXPECT_FALSE(uart_.UpdateData(dst));
 }
 
+// --- HandleRxComplete / HandleRxError tests ---
+
+TEST_F(UartTest, HandleRxCompleteNormalPacket)
+{
+  Info src{};
+  src.chassis_vel_x_ = 1.0f;
+  PrepareAndCopyToReceive(src);
+  Info dst{};
+  auto result = uart_.HandleRxComplete(dst);
+  EXPECT_TRUE(result.data_updated);
+  EXPECT_FLOAT_EQ(dst.chassis_vel_x_, 1.0f);
+  EXPECT_EQ(result.next_rx_size, Uart::PACKET_SIZE);
+}
+
+TEST_F(UartTest, HandleRxCompleteEntersResyncAfterThreshold)
+{
+  // send invalid packets to trigger resync
+  Info dst{};
+  uart_.uart_receive_buffer_[0] = 0x00;  // bad header
+  for (uint8_t i = 0; i < Uart::RESYNC_THRESHOLD; i++) {
+    auto result = uart_.HandleRxComplete(dst);
+    EXPECT_FALSE(result.data_updated);
+  }
+  // after threshold, should be in scan mode (1 byte receive)
+  auto result = uart_.HandleRxComplete(dst);
+  EXPECT_EQ(result.next_rx_size, 1);
+}
+
+TEST_F(UartTest, HandleRxCompleteResyncFindsHeader)
+{
+  Info src{};
+  src.chassis_vel_x_ = 2.5f;
+  uart_.PreparePacket(src);
+
+  // force into scan mode
+  Info dst{};
+  uart_.uart_receive_buffer_[0] = 0x00;
+  Uart::RxResult r{};
+  for (uint8_t i = 0; i < Uart::RESYNC_THRESHOLD + 1; i++) {
+    r = uart_.HandleRxComplete(dst);
+  }
+  // now in RX_SCAN_H0 — r.next_rx_buf points to scan_buf_
+  EXPECT_EQ(r.next_rx_size, 1);
+
+  // simulate DMA writing HEADER_0 into the returned buffer
+  r.next_rx_buf[0] = Uart::HEADER_0;
+  auto r1 = uart_.HandleRxComplete(dst);  // scan_h0 → finds 0xA5 → scan_h1
+  EXPECT_FALSE(r1.data_updated);
+  EXPECT_EQ(r1.next_rx_size, 1);
+
+  // simulate DMA writing HEADER_1
+  r1.next_rx_buf[0] = Uart::HEADER_1;
+  auto r2 = uart_.HandleRxComplete(dst);  // scan_h1 → finds 0x5A → scan_remain
+  EXPECT_FALSE(r2.data_updated);
+  EXPECT_EQ(r2.next_rx_size, Uart::PACKET_SIZE - 2);
+
+  // simulate DMA writing remaining payload into &uart_receive_buffer_[2]
+  std::memcpy(r2.next_rx_buf, &uart_.uart_transmit_buffer_[2], Uart::PACKET_SIZE - 2);
+  auto r3 = uart_.HandleRxComplete(dst);  // scan_remain → parse success → back to packet mode
+  EXPECT_TRUE(r3.data_updated);
+  EXPECT_FLOAT_EQ(dst.chassis_vel_x_, 2.5f);
+  EXPECT_EQ(r3.next_rx_size, Uart::PACKET_SIZE);
+}
+
+TEST_F(UartTest, HandleRxErrorEntersScanMode)
+{
+  auto result = uart_.HandleRxError();
+  EXPECT_FALSE(result.data_updated);
+  EXPECT_EQ(result.next_rx_size, 1);
+}
+
 }  // namespace rabcl
 
 int main(int argc, char ** argv)

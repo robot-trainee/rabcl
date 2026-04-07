@@ -3,11 +3,13 @@
 namespace rabcl
 {
 Uart::Uart()
+: rx_state_(RX_PACKET), fail_count_(0)
 {
   for (int i = 0; i < PACKET_SIZE; i++) {
     uart_receive_buffer_[i] = 0;
     uart_transmit_buffer_[i] = 0;
   }
+  scan_buf_[0] = 0;
 }
 
 Uart::~Uart()
@@ -145,4 +147,71 @@ void Uart::PreparePacket(const Info & data)
   // padding
   uart_transmit_buffer_[27] = 0x00;
 }
+Uart::RxResult Uart::HandleRxComplete(Info & data)
+{
+  RxResult result = {false, nullptr, 0};
+
+  switch (rx_state_) {
+    case RX_PACKET:
+      if (UpdateData(data)) {
+        fail_count_ = 0;
+        result.data_updated = true;
+        result.next_rx_buf = uart_receive_buffer_;
+        result.next_rx_size = PACKET_SIZE;
+      } else {
+        fail_count_++;
+        if (fail_count_ >= RESYNC_THRESHOLD) {
+          rx_state_ = RX_SCAN_H0;
+          result.next_rx_buf = scan_buf_;
+          result.next_rx_size = 1;
+        } else {
+          result.next_rx_buf = uart_receive_buffer_;
+          result.next_rx_size = PACKET_SIZE;
+        }
+      }
+      break;
+
+    case RX_SCAN_H0:
+      if (scan_buf_[0] == HEADER_0) {
+        rx_state_ = RX_SCAN_H1;
+      }
+      result.next_rx_buf = scan_buf_;
+      result.next_rx_size = 1;
+      break;
+
+    case RX_SCAN_H1:
+      if (scan_buf_[0] == HEADER_1) {
+        uart_receive_buffer_[0] = HEADER_0;
+        uart_receive_buffer_[1] = HEADER_1;
+        rx_state_ = RX_SCAN_REMAIN;
+        result.next_rx_buf = &uart_receive_buffer_[2];
+        result.next_rx_size = PACKET_SIZE - 2;
+      } else {
+        rx_state_ = (scan_buf_[0] == HEADER_0) ? RX_SCAN_H1 : RX_SCAN_H0;
+        result.next_rx_buf = scan_buf_;
+        result.next_rx_size = 1;
+      }
+      break;
+
+    case RX_SCAN_REMAIN:
+      if (UpdateData(data)) {
+        fail_count_ = 0;
+        result.data_updated = true;
+      }
+      rx_state_ = RX_PACKET;
+      result.next_rx_buf = uart_receive_buffer_;
+      result.next_rx_size = PACKET_SIZE;
+      break;
+  }
+
+  return result;
+}
+
+Uart::RxResult Uart::HandleRxError()
+{
+  rx_state_ = RX_SCAN_H0;
+  fail_count_ = 0;
+  return {false, scan_buf_, 1};
+}
+
 }  // namespace rabcl
