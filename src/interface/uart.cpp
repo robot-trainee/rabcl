@@ -4,87 +4,145 @@ namespace rabcl
 {
 Uart::Uart()
 {
-    // NOP
+  for (int i = 0; i < PACKET_SIZE; i++) {
+    uart_receive_buffer_[i] = 0;
+    uart_transmit_buffer_[i] = 0;
+  }
 }
 
 Uart::~Uart()
 {
-    // NOP
+  // NOP
+}
+
+uint8_t Uart::CalcCrc8(const uint8_t * buf, uint8_t offset, uint8_t len)
+{
+  uint8_t crc = 0;
+  for (uint8_t i = 0; i < len; i++) {
+    crc ^= buf[offset + i];
+  }
+  return crc;
 }
 
 bool Uart::UpdateData(Info & data)
 {
-  if (uart_receive_buffer_[0] == 0xFF && uart_receive_buffer_[6] == 0xFF) {
-    int idx = static_cast<int>(uart_receive_buffer_[1]);
-    union {
-      float f;
-      int32_t ui;
-    } buf;
-    buf.ui = static_cast<int32_t>(
-      (((static_cast<int32_t>(uart_receive_buffer_[2]) << 24) & 0xFF000000) |
-      ((static_cast<int32_t>(uart_receive_buffer_[3]) << 16) & 0x00FF0000) |
-      ((static_cast<int32_t>(uart_receive_buffer_[4]) << 8) & 0x0000FF00) |
-      ((static_cast<int32_t>(uart_receive_buffer_[5]) << 0) & 0x000000FF))
-    );
-
-    if (idx == UART_ID::UART_CHASSIS_X) {
-      data.chassis_vel_x_ = buf.f;
-    } else if (idx == UART_ID::UART_CHASSIS_Y) {
-      data.chassis_vel_y_ = buf.f;
-    } else if (idx == UART_ID::UART_CHASSIS_Z) {
-      data.chassis_vel_z_ = buf.f;
-    } else if (idx == UART_ID::UART_YAW) {
-      data.yaw_pos_ = buf.f;
-    } else if (idx == UART_ID::UART_PITCH) {
-      data.pitch_pos_ = buf.f;
-    } else if (idx == UART_ID::UART_MODES) {
-      data.load_mode_ = uart_receive_buffer_[2 + static_cast<int>(MODE_ID::LOAD)];
-      data.fire_mode_ = uart_receive_buffer_[2 + static_cast<int>(MODE_ID::FIRE)];
-      data.speed_mode_ = uart_receive_buffer_[2 + static_cast<int>(MODE_ID::SPEED)];
-      data.chassis_mode_ = uart_receive_buffer_[2 + static_cast<int>(MODE_ID::CHASSIS)];
-    } else {
-      return false;
-    }
-    return true;
-  } else {
+  // header check
+  if (uart_receive_buffer_[0] != HEADER_0 || uart_receive_buffer_[1] != HEADER_1) {
     return false;
   }
-}
 
-void Uart::PrepareFloatData(uint8_t idx, float data)
-{
-    // ---header
-  uart_transmit_buffer_[0] = 0xFF;
-    // ---index
-  uart_transmit_buffer_[1] = idx;
-    // ---data
+  // CRC check (payload bytes[2..25])
+  uint8_t crc = CalcCrc8(uart_receive_buffer_, 2, 24);
+  if (crc != uart_receive_buffer_[26]) {
+    return false;
+  }
+
+  // parse payload
   union {
     float f;
     int32_t ui;
   } buf;
-  buf.f = data;
-  uart_transmit_buffer_[2] = static_cast<uint8_t>((buf.ui & 0xFF000000) >> 24);
-  uart_transmit_buffer_[3] = static_cast<uint8_t>((buf.ui & 0x00FF0000) >> 16);
-  uart_transmit_buffer_[4] = static_cast<uint8_t>((buf.ui & 0x0000FF00) >> 8);
-  uart_transmit_buffer_[5] = static_cast<uint8_t>((buf.ui & 0x000000FF) >> 0);
-    // ---end
-  uart_transmit_buffer_[6] = 0xFF;
-  uart_transmit_buffer_[7] = 0x00;
+
+  // chassis_vel_x [2..5]
+  buf.ui = (static_cast<int32_t>(uart_receive_buffer_[2]) << 24) |
+    (static_cast<int32_t>(uart_receive_buffer_[3]) << 16) |
+    (static_cast<int32_t>(uart_receive_buffer_[4]) << 8) |
+    (static_cast<int32_t>(uart_receive_buffer_[5]));
+  data.chassis_vel_x_ = buf.f;
+
+  // chassis_vel_y [6..9]
+  buf.ui = (static_cast<int32_t>(uart_receive_buffer_[6]) << 24) |
+    (static_cast<int32_t>(uart_receive_buffer_[7]) << 16) |
+    (static_cast<int32_t>(uart_receive_buffer_[8]) << 8) |
+    (static_cast<int32_t>(uart_receive_buffer_[9]));
+  data.chassis_vel_y_ = buf.f;
+
+  // chassis_vel_z [10..13]
+  buf.ui = (static_cast<int32_t>(uart_receive_buffer_[10]) << 24) |
+    (static_cast<int32_t>(uart_receive_buffer_[11]) << 16) |
+    (static_cast<int32_t>(uart_receive_buffer_[12]) << 8) |
+    (static_cast<int32_t>(uart_receive_buffer_[13]));
+  data.chassis_vel_z_ = buf.f;
+
+  // yaw_pos [14..17]
+  buf.ui = (static_cast<int32_t>(uart_receive_buffer_[14]) << 24) |
+    (static_cast<int32_t>(uart_receive_buffer_[15]) << 16) |
+    (static_cast<int32_t>(uart_receive_buffer_[16]) << 8) |
+    (static_cast<int32_t>(uart_receive_buffer_[17]));
+  data.yaw_pos_ = buf.f;
+
+  // pitch_pos [18..21]
+  buf.ui = (static_cast<int32_t>(uart_receive_buffer_[18]) << 24) |
+    (static_cast<int32_t>(uart_receive_buffer_[19]) << 16) |
+    (static_cast<int32_t>(uart_receive_buffer_[20]) << 8) |
+    (static_cast<int32_t>(uart_receive_buffer_[21]));
+  data.pitch_pos_ = buf.f;
+
+  // modes [22..25]
+  data.load_mode_ = uart_receive_buffer_[22];
+  data.fire_mode_ = uart_receive_buffer_[23];
+  data.speed_mode_ = uart_receive_buffer_[24];
+  data.chassis_mode_ = uart_receive_buffer_[25];
+
+  return true;
 }
 
-void Uart::Prepare4IntData(uint8_t idx, const uint8_t data[4])
+void Uart::PreparePacket(const Info & data)
 {
-    // ---header
-  uart_transmit_buffer_[0] = 0xFF;
-    // ---index
-  uart_transmit_buffer_[1] = idx;
-    // ---data
-  uart_transmit_buffer_[2 + static_cast<int>(MODE_ID::LOAD)] = data[0];
-  uart_transmit_buffer_[2 + static_cast<int>(MODE_ID::FIRE)] = data[1];
-  uart_transmit_buffer_[2 + static_cast<int>(MODE_ID::SPEED)] = data[2];
-  uart_transmit_buffer_[2 + static_cast<int>(MODE_ID::CHASSIS)] = data[3];
-    // ---end
-  uart_transmit_buffer_[6] = 0xFF;
-  uart_transmit_buffer_[7] = 0x00;
+  union {
+    float f;
+    int32_t ui;
+  } buf;
+
+  // header
+  uart_transmit_buffer_[0] = HEADER_0;
+  uart_transmit_buffer_[1] = HEADER_1;
+
+  // chassis_vel_x [2..5]
+  buf.f = data.chassis_vel_x_;
+  uart_transmit_buffer_[2] = static_cast<uint8_t>((buf.ui >> 24) & 0xFF);
+  uart_transmit_buffer_[3] = static_cast<uint8_t>((buf.ui >> 16) & 0xFF);
+  uart_transmit_buffer_[4] = static_cast<uint8_t>((buf.ui >> 8) & 0xFF);
+  uart_transmit_buffer_[5] = static_cast<uint8_t>((buf.ui >> 0) & 0xFF);
+
+  // chassis_vel_y [6..9]
+  buf.f = data.chassis_vel_y_;
+  uart_transmit_buffer_[6] = static_cast<uint8_t>((buf.ui >> 24) & 0xFF);
+  uart_transmit_buffer_[7] = static_cast<uint8_t>((buf.ui >> 16) & 0xFF);
+  uart_transmit_buffer_[8] = static_cast<uint8_t>((buf.ui >> 8) & 0xFF);
+  uart_transmit_buffer_[9] = static_cast<uint8_t>((buf.ui >> 0) & 0xFF);
+
+  // chassis_vel_z [10..13]
+  buf.f = data.chassis_vel_z_;
+  uart_transmit_buffer_[10] = static_cast<uint8_t>((buf.ui >> 24) & 0xFF);
+  uart_transmit_buffer_[11] = static_cast<uint8_t>((buf.ui >> 16) & 0xFF);
+  uart_transmit_buffer_[12] = static_cast<uint8_t>((buf.ui >> 8) & 0xFF);
+  uart_transmit_buffer_[13] = static_cast<uint8_t>((buf.ui >> 0) & 0xFF);
+
+  // yaw_pos [14..17]
+  buf.f = data.yaw_pos_;
+  uart_transmit_buffer_[14] = static_cast<uint8_t>((buf.ui >> 24) & 0xFF);
+  uart_transmit_buffer_[15] = static_cast<uint8_t>((buf.ui >> 16) & 0xFF);
+  uart_transmit_buffer_[16] = static_cast<uint8_t>((buf.ui >> 8) & 0xFF);
+  uart_transmit_buffer_[17] = static_cast<uint8_t>((buf.ui >> 0) & 0xFF);
+
+  // pitch_pos [18..21]
+  buf.f = data.pitch_pos_;
+  uart_transmit_buffer_[18] = static_cast<uint8_t>((buf.ui >> 24) & 0xFF);
+  uart_transmit_buffer_[19] = static_cast<uint8_t>((buf.ui >> 16) & 0xFF);
+  uart_transmit_buffer_[20] = static_cast<uint8_t>((buf.ui >> 8) & 0xFF);
+  uart_transmit_buffer_[21] = static_cast<uint8_t>((buf.ui >> 0) & 0xFF);
+
+  // modes [22..25]
+  uart_transmit_buffer_[22] = data.load_mode_;
+  uart_transmit_buffer_[23] = data.fire_mode_;
+  uart_transmit_buffer_[24] = data.speed_mode_;
+  uart_transmit_buffer_[25] = data.chassis_mode_;
+
+  // CRC8 (payload bytes[2..25])
+  uart_transmit_buffer_[26] = CalcCrc8(uart_transmit_buffer_, 2, 24);
+
+  // padding
+  uart_transmit_buffer_[27] = 0x00;
 }
 }  // namespace rabcl

@@ -11,138 +11,118 @@ class UartTest : public ::testing::Test
 protected:
   Uart uart_;
 
-    // float を 4バイトに分解して受信バッファに書き込むヘルパー
-  void SetReceiveFloat(uint8_t idx, float value)
+  // Info を設定して PreparePacket → 受信バッファにコピーするヘルパー
+  void PrepareAndCopyToReceive(const Info & info)
   {
-    union { float f; int32_t ui; } buf;
-    buf.f = value;
-    uart_.uart_receive_buffer_[0] = 0xFF;
-    uart_.uart_receive_buffer_[1] = idx;
-    uart_.uart_receive_buffer_[2] = static_cast<uint8_t>((buf.ui >> 24) & 0xFF);
-    uart_.uart_receive_buffer_[3] = static_cast<uint8_t>((buf.ui >> 16) & 0xFF);
-    uart_.uart_receive_buffer_[4] = static_cast<uint8_t>((buf.ui >> 8) & 0xFF);
-    uart_.uart_receive_buffer_[5] = static_cast<uint8_t>((buf.ui >> 0) & 0xFF);
-    uart_.uart_receive_buffer_[6] = 0xFF;
-    uart_.uart_receive_buffer_[7] = 0x00;
+    uart_.PreparePacket(info);
+    std::memcpy(uart_.uart_receive_buffer_, uart_.uart_transmit_buffer_, Uart::PACKET_SIZE);
   }
 };
 
-TEST_F(UartTest, UpdateDataInvalidHeader)
+TEST_F(UartTest, PacketSizeIs28)
 {
-  uart_.uart_receive_buffer_[0] = 0x00;  // 不正ヘッダ
-  uart_.uart_receive_buffer_[6] = 0xFF;
+  EXPECT_EQ(Uart::PACKET_SIZE, 28);
+}
+
+TEST_F(UartTest, UpdateDataInvalidHeader0)
+{
+  Info info{};
+  PrepareAndCopyToReceive(info);
+  uart_.uart_receive_buffer_[0] = 0x00;
   Info data;
   EXPECT_FALSE(uart_.UpdateData(data));
 }
 
-TEST_F(UartTest, UpdateDataInvalidFooter)
+TEST_F(UartTest, UpdateDataInvalidHeader1)
 {
-  uart_.uart_receive_buffer_[0] = 0xFF;
-  uart_.uart_receive_buffer_[6] = 0x00;  // 不正フッタ
+  Info info{};
+  PrepareAndCopyToReceive(info);
+  uart_.uart_receive_buffer_[1] = 0x00;
   Info data;
   EXPECT_FALSE(uart_.UpdateData(data));
 }
 
-TEST_F(UartTest, UpdateDataChassisX)
+TEST_F(UartTest, UpdateDataInvalidCrc)
 {
-  SetReceiveFloat(UART_ID::UART_CHASSIS_X, 1.5f);
-  Info data;
-  EXPECT_TRUE(uart_.UpdateData(data));
-  EXPECT_FLOAT_EQ(data.chassis_vel_x_, 1.5f);
-}
-
-TEST_F(UartTest, UpdateDataChassisY)
-{
-  SetReceiveFloat(UART_ID::UART_CHASSIS_Y, 2.5f);
-  Info data;
-  EXPECT_TRUE(uart_.UpdateData(data));
-  EXPECT_FLOAT_EQ(data.chassis_vel_y_, 2.5f);
-}
-
-TEST_F(UartTest, UpdateDataChassisZ)
-{
-  SetReceiveFloat(UART_ID::UART_CHASSIS_Z, 3.5f);
-  Info data;
-  EXPECT_TRUE(uart_.UpdateData(data));
-  EXPECT_FLOAT_EQ(data.chassis_vel_z_, 3.5f);
-}
-
-TEST_F(UartTest, UpdateDataYaw)
-{
-  SetReceiveFloat(UART_ID::UART_YAW, 0.5f);
-  Info data;
-  EXPECT_TRUE(uart_.UpdateData(data));
-  EXPECT_FLOAT_EQ(data.yaw_pos_, 0.5f);
-}
-
-TEST_F(UartTest, UpdateDataPitch)
-{
-  SetReceiveFloat(UART_ID::UART_PITCH, -0.3f);
-  Info data;
-  EXPECT_TRUE(uart_.UpdateData(data));
-  EXPECT_FLOAT_EQ(data.pitch_pos_, -0.3f);
-}
-
-TEST_F(UartTest, UpdateDataModes)
-{
-  uart_.uart_receive_buffer_[0] = 0xFF;
-  uart_.uart_receive_buffer_[1] = UART_ID::UART_MODES;
-  uart_.uart_receive_buffer_[2 + static_cast<int>(MODE_ID::LOAD)] = 1;
-  uart_.uart_receive_buffer_[2 + static_cast<int>(MODE_ID::FIRE)] = 2;
-  uart_.uart_receive_buffer_[2 + static_cast<int>(MODE_ID::SPEED)] = 0;
-  uart_.uart_receive_buffer_[2 + static_cast<int>(MODE_ID::CHASSIS)] = 1;
-  uart_.uart_receive_buffer_[6] = 0xFF;
-  Info data;
-  EXPECT_TRUE(uart_.UpdateData(data));
-  EXPECT_EQ(data.load_mode_, 1);
-  EXPECT_EQ(data.fire_mode_, 2);
-  EXPECT_EQ(data.speed_mode_, 0);
-  EXPECT_EQ(data.chassis_mode_, 1);
-}
-
-TEST_F(UartTest, UpdateDataUnknownIdx)
-{
-  uart_.uart_receive_buffer_[0] = 0xFF;
-  uart_.uart_receive_buffer_[1] = 0xFF;  // 不正インデックス
-  uart_.uart_receive_buffer_[6] = 0xFF;
+  Info info{};
+  PrepareAndCopyToReceive(info);
+  uart_.uart_receive_buffer_[26] ^= 0xFF;  // CRC を壊す
   Info data;
   EXPECT_FALSE(uart_.UpdateData(data));
 }
 
-TEST_F(UartTest, PrepareFloatData)
+TEST_F(UartTest, RoundTripAllFields)
 {
-  float value = 3.14f;
-  uart_.PrepareFloatData(UART_ID::UART_CHASSIS_X, value);
+  Info src{};
+  src.chassis_vel_x_ = 1.5f;
+  src.chassis_vel_y_ = -2.3f;
+  src.chassis_vel_z_ = 0.7f;
+  src.yaw_pos_ = 3.14f;
+  src.pitch_pos_ = -0.5f;
+  src.load_mode_ = 1;
+  src.fire_mode_ = 2;
+  src.speed_mode_ = 0;
+  src.chassis_mode_ = 1;
 
-  EXPECT_EQ(uart_.uart_transmit_buffer_[0], 0xFF);
-  EXPECT_EQ(uart_.uart_transmit_buffer_[1], UART_ID::UART_CHASSIS_X);
-  EXPECT_EQ(uart_.uart_transmit_buffer_[6], 0xFF);
-  EXPECT_EQ(uart_.uart_transmit_buffer_[7], 0x00);
+  PrepareAndCopyToReceive(src);
 
-  // 送信バッファを受信バッファにコピーして復元できるか検証
-  std::memcpy(uart_.uart_receive_buffer_, uart_.uart_transmit_buffer_, 8);
-  Info data;
-  EXPECT_TRUE(uart_.UpdateData(data));
-  EXPECT_FLOAT_EQ(data.chassis_vel_x_, value);
+  Info dst{};
+  EXPECT_TRUE(uart_.UpdateData(dst));
+  EXPECT_FLOAT_EQ(dst.chassis_vel_x_, 1.5f);
+  EXPECT_FLOAT_EQ(dst.chassis_vel_y_, -2.3f);
+  EXPECT_FLOAT_EQ(dst.chassis_vel_z_, 0.7f);
+  EXPECT_FLOAT_EQ(dst.yaw_pos_, 3.14f);
+  EXPECT_FLOAT_EQ(dst.pitch_pos_, -0.5f);
+  EXPECT_EQ(dst.load_mode_, 1);
+  EXPECT_EQ(dst.fire_mode_, 2);
+  EXPECT_EQ(dst.speed_mode_, 0);
+  EXPECT_EQ(dst.chassis_mode_, 1);
 }
 
-TEST_F(UartTest, Prepare4IntData)
+TEST_F(UartTest, RoundTripZeroValues)
 {
-  uint8_t modes[4] = {1, 2, 0, 1};
-  uart_.Prepare4IntData(UART_ID::UART_MODES, modes);
+  Info src{};
+  PrepareAndCopyToReceive(src);
+  Info dst{};
+  dst.chassis_vel_x_ = 999.0f;  // 上書きされることを確認
+  EXPECT_TRUE(uart_.UpdateData(dst));
+  EXPECT_FLOAT_EQ(dst.chassis_vel_x_, 0.0f);
+  EXPECT_FLOAT_EQ(dst.yaw_pos_, 0.0f);
+  EXPECT_EQ(dst.load_mode_, 0);
+}
 
-  EXPECT_EQ(uart_.uart_transmit_buffer_[0], 0xFF);
-  EXPECT_EQ(uart_.uart_transmit_buffer_[1], UART_ID::UART_MODES);
-  EXPECT_EQ(uart_.uart_transmit_buffer_[6], 0xFF);
-  EXPECT_EQ(uart_.uart_transmit_buffer_[7], 0x00);
+TEST_F(UartTest, PreparePacketHeader)
+{
+  Info info{};
+  uart_.PreparePacket(info);
+  EXPECT_EQ(uart_.uart_transmit_buffer_[0], Uart::HEADER_0);
+  EXPECT_EQ(uart_.uart_transmit_buffer_[1], Uart::HEADER_1);
+  EXPECT_EQ(uart_.uart_transmit_buffer_[27], 0x00);
+}
 
-  std::memcpy(uart_.uart_receive_buffer_, uart_.uart_transmit_buffer_, 8);
-  Info data;
-  EXPECT_TRUE(uart_.UpdateData(data));
-  EXPECT_EQ(data.load_mode_, 1);
-  EXPECT_EQ(data.fire_mode_, 2);
-  EXPECT_EQ(data.speed_mode_, 0);
-  EXPECT_EQ(data.chassis_mode_, 1);
+TEST_F(UartTest, CalcCrc8)
+{
+  uint8_t data[4] = {0x01, 0x02, 0x04, 0x08};
+  EXPECT_EQ(Uart::CalcCrc8(data, 0, 4), 0x01 ^ 0x02 ^ 0x04 ^ 0x08);
+}
+
+TEST_F(UartTest, CalcCrc8WithOffset)
+{
+  uint8_t data[6] = {0xAA, 0xBB, 0x01, 0x02, 0x04, 0x08};
+  EXPECT_EQ(Uart::CalcCrc8(data, 2, 4), 0x01 ^ 0x02 ^ 0x04 ^ 0x08);
+}
+
+TEST_F(UartTest, CorruptedPayloadDetected)
+{
+  Info src{};
+  src.chassis_vel_x_ = 1.0f;
+  PrepareAndCopyToReceive(src);
+
+  // ペイロードの1バイトを壊す
+  uart_.uart_receive_buffer_[3] ^= 0x01;
+
+  Info dst{};
+  EXPECT_FALSE(uart_.UpdateData(dst));
 }
 
 }  // namespace rabcl
