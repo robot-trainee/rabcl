@@ -30,6 +30,9 @@ public:
   static void PrepareLKMotorMotorOff(uint8_t can_data[8]);
   static void PrepareLKMotorMotorOn(uint8_t can_data[8]);
   static void PrepareLKMotorMotorStop(uint8_t can_data[8]);
+  static void PrepareLKMotorTorqueCmd(
+    int16_t current /* 0.01A/LSB */,
+    uint8_t can_data[8]);
   static void PrepareLKMotorPositionCmd(
     int32_t pos /* [0.01 deg] */,
     uint16_t max_speed /* [dps] */,

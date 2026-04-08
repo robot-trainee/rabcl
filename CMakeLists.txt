@@ -17,6 +17,7 @@ add_library(rabcl SHARED
   src/component/jga25_370.cpp
   src/component/ld_20mg.cpp
   src/controller/omni_drive.cpp
+  src/controller/pd_gravity_ff.cpp
   src/interface/uart.cpp
   src/interface/can.cpp
   src/utils/utils.cpp
@@ -68,6 +69,9 @@ if(BUILD_TESTING)
 
   ament_add_gtest(test_ld_20mg test/test_ld_20mg.cpp)
   target_link_libraries(test_ld_20mg rabcl)
+
+  ament_add_gtest(test_pd_gravity_ff test/test_pd_gravity_ff.cpp)
+  target_link_libraries(test_pd_gravity_ff rabcl)
 endif()
 
 ament_package()

@@ -103,6 +103,32 @@ TEST_F(CanTest, Prepare1Float4IntData)
   }
 }
 
+TEST_F(CanTest, PrepareLKMotorTorqueCmd)
+{
+  uint8_t out[8] = {};
+  Can::PrepareLKMotorTorqueCmd(0x0102, out);
+
+  EXPECT_EQ(out[0], 0xA1);
+  EXPECT_EQ(out[1], 0x00);
+  EXPECT_EQ(out[2], 0x00);
+  EXPECT_EQ(out[3], 0x00);
+  EXPECT_EQ(out[4], 0x02);  // current low byte
+  EXPECT_EQ(out[5], 0x01);  // current high byte
+  EXPECT_EQ(out[6], 0x00);
+  EXPECT_EQ(out[7], 0x00);
+}
+
+TEST_F(CanTest, PrepareLKMotorTorqueCmdNegative)
+{
+  uint8_t out[8] = {};
+  Can::PrepareLKMotorTorqueCmd(-500, out);
+
+  EXPECT_EQ(out[0], 0xA1);
+  int16_t reconstructed = static_cast<int16_t>(
+    (static_cast<uint16_t>(out[5]) << 8) | out[4]);
+  EXPECT_EQ(reconstructed, -500);
+}
+
 TEST_F(CanTest, PrepareLKMotorPositionCmd)
 {
   uint8_t out[8] = {};

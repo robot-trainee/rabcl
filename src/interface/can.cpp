@@ -157,6 +157,18 @@ void Can::PrepareLKMotorMotorStop(uint8_t can_data[8])
   can_data[7] = 0x00;
 }
 
+void Can::PrepareLKMotorTorqueCmd(int16_t current, uint8_t can_data[8])
+{
+  can_data[0] = 0xA1;
+  can_data[1] = 0x00;
+  can_data[2] = 0x00;
+  can_data[3] = 0x00;
+  can_data[4] = static_cast<uint8_t>(current & 0xFF);
+  can_data[5] = static_cast<uint8_t>((current >> 8) & 0xFF);
+  can_data[6] = 0x00;
+  can_data[7] = 0x00;
+}
+
 void Can::PrepareLKMotorPositionCmd(
   int32_t pos, uint16_t max_speed, uint8_t can_data[8])
 {
