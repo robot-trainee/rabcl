@@ -26,6 +26,23 @@ float PdGravityFf::Calc(float pos_target, float pos_actual, float vel_actual)
   return output;
 }
 
+float PdGravityFf::CalcAngular(
+  float pos_target, float pos_actual, float vel_actual, float full_rotation)
+{
+  float half = full_rotation / 2.0f;
+  float err = std::fmod(pos_target - pos_actual, full_rotation);
+  if (err > half) {err -= full_rotation;}
+  if (err < -half) {err += full_rotation;}
+  float output = kp_ * err - kd_ * vel_actual + gravity_ff_ * std::sin(pos_actual);
+  if (output > output_max_) {
+    output = output_max_;
+  }
+  if (output < -output_max_) {
+    output = -output_max_;
+  }
+  return output;
+}
+
 void PdGravityFf::SetGains(float kp, float kd, float gravity_ff)
 {
   kp_ = kp;
