@@ -14,6 +14,10 @@ public:
 
   static void RadToDeg(double rad, double & deg);
   static double RadToDeg(double rad);
+
+  static double ShortestPathMultiTurn(
+    double current, double target,
+    double full_rotation = 2.0 * M_PI);
 };
 }  // namespace rabcl
 

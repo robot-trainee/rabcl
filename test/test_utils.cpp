@@ -40,6 +40,57 @@ TEST(UtilsTest, RadToDegOutParam)
   EXPECT_DOUBLE_EQ(deg, 0.0);
 }
 
+TEST(UtilsTest, ShortestPathNoChange)
+{
+  EXPECT_DOUBLE_EQ(Utils::ShortestPathMultiTurn(1.0, 1.0), 1.0);
+}
+
+TEST(UtilsTest, ShortestPathForward)
+{
+  EXPECT_NEAR(Utils::ShortestPathMultiTurn(1.0, 1.5), 1.5, 1e-9);
+}
+
+TEST(UtilsTest, ShortestPathBackward)
+{
+  EXPECT_NEAR(Utils::ShortestPathMultiTurn(1.0, 0.5), 0.5, 1e-9);
+}
+
+TEST(UtilsTest, ShortestPathWrapCW)
+{
+  // current=350°, target=10° (in rad) → should go +20° not -340°
+  double current = 350.0 * M_PI / 180.0;
+  double target = 10.0 * M_PI / 180.0;
+  double result = Utils::ShortestPathMultiTurn(current, target);
+  double expected = 370.0 * M_PI / 180.0;
+  EXPECT_NEAR(result, expected, 1e-9);
+}
+
+TEST(UtilsTest, ShortestPathWrapCCW)
+{
+  // current=10°, target=350° → should go -20° not +340°
+  double current = 10.0 * M_PI / 180.0;
+  double target = 350.0 * M_PI / 180.0;
+  double result = Utils::ShortestPathMultiTurn(current, target);
+  double expected = -10.0 * M_PI / 180.0;
+  EXPECT_NEAR(result, expected, 1e-9);
+}
+
+TEST(UtilsTest, ShortestPathAccumulate)
+{
+  double cmd = 4.0;
+  cmd = Utils::ShortestPathMultiTurn(cmd, 4.5);
+  EXPECT_NEAR(cmd, 4.5, 1e-9);
+  cmd = Utils::ShortestPathMultiTurn(cmd, 0.2);  // wrap CW
+  EXPECT_NEAR(cmd, 2.0 * M_PI + 0.2, 1e-9);
+}
+
+TEST(UtilsTest, ShortestPathCustomFullRotation)
+{
+  // full_rotation=36000 (0.01 deg units)
+  double result = Utils::ShortestPathMultiTurn(35000.0, 1000.0, 36000.0);
+  EXPECT_NEAR(result, 37000.0, 1e-9);
+}
+
 }  // namespace rabcl
 
 int main(int argc, char ** argv)
