@@ -46,4 +46,23 @@ double Utils::ShortestPathMultiTurn(double current, double target, double full_r
   }
   return current + diff;
 }
+static uint32_t xorshift_state_ = 1;
+
+void Utils::SetRandomSeed(uint32_t seed)
+{
+  xorshift_state_ = (seed == 0) ? 1 : seed;
+}
+
+uint32_t Utils::Random()
+{
+  xorshift_state_ ^= xorshift_state_ << 13;
+  xorshift_state_ ^= xorshift_state_ >> 17;
+  xorshift_state_ ^= xorshift_state_ << 5;
+  return xorshift_state_;
+}
+
+float Utils::RandomFloat(float min, float max)
+{
+  return min + (Random() % 10000) / 10000.0f * (max - min);
+}
 }  // namespace rabcl

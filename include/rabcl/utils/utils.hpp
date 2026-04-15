@@ -18,6 +18,10 @@ public:
   static double ShortestPathMultiTurn(
     double current, double target,
     double full_rotation = 2.0 * M_PI);
+
+  static void SetRandomSeed(uint32_t seed);
+  static uint32_t Random();
+  static float RandomFloat(float min, float max);
 };
 }  // namespace rabcl
 
