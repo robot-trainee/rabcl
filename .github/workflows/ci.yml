@@ -18,7 +18,7 @@ jobs:
           required-ros-distributions: ${{ matrix.ros_distribution }}
 
       - name: Build and test
-        uses: ros-tooling/action-ros-ci@v0.3
+        uses: ros-tooling/action-ros-ci@v0.4
         with:
           package-name: rabcl
           target-ros2-distro: ${{ matrix.ros_distribution }}
